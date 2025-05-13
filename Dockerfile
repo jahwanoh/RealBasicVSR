@@ -1,5 +1,9 @@
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
+# Set non-interactive environment and default timezone
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
 WORKDIR /app
 
 # Install system dependencies
