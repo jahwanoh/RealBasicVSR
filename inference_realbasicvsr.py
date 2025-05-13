@@ -102,19 +102,21 @@ def main():
         model = model.cuda()
         cuda_flag = True
 
-    with torch.no_grad():
-        if isinstance(args.max_seq_len, int):
-            outputs = []
-            for i in range(0, inputs.size(1), args.max_seq_len):
-                imgs = inputs[:, i:i + args.max_seq_len, :, :, :]
+    print("running with torch.cuda.amp.autocast()!")
+    with torch.cuda.amp.autocast():
+        with torch.no_grad():
+            if isinstance(args.max_seq_len, int):
+                outputs = []
+                for i in range(0, inputs.size(1), args.max_seq_len):
+                    imgs = inputs[:, i:i + args.max_seq_len, :, :, :]
+                    if cuda_flag:
+                        imgs = imgs.cuda()
+                    outputs.append(model(imgs, test_mode=True)['output'].cpu())
+                outputs = torch.cat(outputs, dim=1)
+            else:
                 if cuda_flag:
-                    imgs = imgs.cuda()
-                outputs.append(model(imgs, test_mode=True)['output'].cpu())
-            outputs = torch.cat(outputs, dim=1)
-        else:
-            if cuda_flag:
-                inputs = inputs.cuda()
-            outputs = model(inputs, test_mode=True)['output'].cpu()
+                    inputs = inputs.cuda()
+                outputs = model(inputs, test_mode=True)['output'].cpu()
 
     if os.path.splitext(args.output_dir)[1] in VIDEO_EXTENSIONS:
         output_dir = os.path.dirname(args.output_dir)
